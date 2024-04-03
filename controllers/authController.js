@@ -13,7 +13,7 @@ const getJsonWebToken = async (email, id) => {
     return token;
 };
 
-
+//Controller xu li Dang ky cho nguoi dung
 const register = asyncHandle(async (req, res) => {
     const {email, fullname, password}= req.body;
 
@@ -45,7 +45,34 @@ const register = asyncHandle(async (req, res) => {
 
 });
 
+//Controller xu li dang nhap
+const login = asyncHandle(async (req, res) => {
+    const {email, password} = req.body;
+    const existingUser = await UserModel.findOne({email});
+
+    if(!existingUser){
+        res.status(403);
+        throw new Error('User not found!');
+    }
+
+    const isMatchPassword = await bcrypt.compare(password, existingUser.password);
+
+    if(!isMatchPassword){
+        res.status(401);
+        throw new Error ('Email or Password not correct!!')
+    }
+    res.status(200).json({
+        messgae: 'Login sucessfully!',
+        data: {
+            id: existingUser.id,
+            email: existingUser.email,
+            accesstoken: await getJsonWebToken(email, existingUser.id),
+        }
+    })
+});
+
 module.exports = {
     register,
+    login,
 };
 
